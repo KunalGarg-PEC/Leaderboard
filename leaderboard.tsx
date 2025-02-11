@@ -120,7 +120,7 @@ export default function Leaderboard() {
   const handleAddSocials = (socials: string[]) => {
     setUserSocials(socials);
     setShowSocialsModal(false);
-    const walletAddress = pubKey?.toBase58() || "0x1234...5678";
+    const walletAddress = pubKey?.toBase58() || "NOT CONNECTED!";
     addUserData(walletAddress, socials);
   };
 
@@ -397,7 +397,7 @@ export default function Leaderboard() {
         onClose={() => setShowSocialsModal(false)}
         onSubmit={handleAddSocials}
         initialSocials={userSocials}
-        walletAddress={pubKey?.toBase58() || ""}
+        walletAddress={pubKey?.toBase58() || "NOT CONNECTED!"}
       />
     </div>
   );

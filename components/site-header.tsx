@@ -53,7 +53,7 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full bg-black shadow-md transition-transform duration-300 ${
+      className={`fixed top-0 z-50 w-full pt-3 bg-black shadow-md transition-transform duration-300 ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >

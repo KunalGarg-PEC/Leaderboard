@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 
 interface Country {
   name: string;
-  flag: string;
+  code: string;
 }
 
 interface AddSocialsModalProps {
@@ -44,42 +44,36 @@ export function AddSocialsModal({
   initialSocials,
   walletAddress,
 }: AddSocialsModalProps) {
-  const [selectedPlatform, setSelectedPlatform] = useState("twitter");
+  const [selectedPlatform, setSelectedPlatform] = useState("");
   const [link, setLink] = useState("");
   const [nickname, setNickname] = useState("");
   const [country, setCountry] = useState("");
   const [countries, setCountries] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [platformSearchTerm, setPlatformSearchTerm] = useState("");
   const [socials, setSocials] = useState<string[]>(initialSocials);
   const [error, setError] = useState("");
 
-  // Fetch countries (with flags) from the Rest Countries API
   useEffect(() => {
     async function fetchCountries() {
       try {
-        const response = await fetch("https://restcountries.com/v3.1/all");
-        if (!response.ok) {
-          throw new Error("Failed to fetch countries");
-        }
+        const response = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2");
+        if (!response.ok) throw new Error("Failed to fetch countries");
         const data = await response.json();
         const fetchedCountries: Country[] = data
           .map((country: any) => ({
             name: country.name.common,
-            flag: country.flags?.png || "",
+            code: country.cca2,
           }))
           .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
         setCountries(fetchedCountries);
-        if (!country && fetchedCountries.length > 0) {
-          setCountry(fetchedCountries[0].name);
-        }
       } catch (error) {
         console.error("Error fetching countries:", error);
       }
     }
     fetchCountries();
-  }, [country]);
+  }, []);
 
-  // Filter countries based on the search term
   const filteredCountries = countries.filter((c) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -102,16 +96,21 @@ export function AddSocialsModal({
     },
   ];
 
+  const filteredPlatforms = platforms.filter((p) =>
+    p.label.toLowerCase().includes(platformSearchTerm.toLowerCase()) ||
+    p.value.toLowerCase().includes(platformSearchTerm.toLowerCase())
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (handleValidation(selectedPlatform, link)) {
+    if (selectedPlatform && handleValidation(selectedPlatform, link)) {
       const newSocials = [...socials, `${selectedPlatform}:${link}`];
       onSubmit(newSocials, nickname, country);
       setSocials(newSocials);
       setLink("");
       setError("");
     } else {
-      setError("Invalid URL format for " + selectedPlatform);
+      setError("Please select a platform and enter a valid URL");
     }
   };
 
@@ -137,7 +136,6 @@ export function AddSocialsModal({
             </Button>
           </div>
 
-          {/* Nickname and Country Inputs in parallel */}
           <div className="flex gap-4 mt-4">
             <div className="flex-1">
               <p className="text-sm text-gray-400">Nickname</p>
@@ -151,12 +149,25 @@ export function AddSocialsModal({
             <div className="flex-1">
               <p className="text-sm text-gray-400">Country</p>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="w-full bg-zinc-800 border-0 text-white focus:ring-0">
-                  <SelectValue placeholder="Select country" />
+                <SelectTrigger className="w-full bg-zinc-800 border-0 text-white focus:ring-0 [&_svg]:text-white">
+                  {country ? (
+                    <div className="flex items-center gap-2">
+                      {countries.find(c => c.name === country)?.code && (
+                        <img
+                          src={`https://flagcdn.com/${countries.find(c => c.name === country)?.code.toLowerCase()}.svg`}
+                          alt="flag"
+                          className="w-5 h-4"
+                        />
+                      )}
+                      <span>{country}</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Select country" />
+                  )}
                 </SelectTrigger>
                 <SelectContent
                   portalled={false}
-                  className="bg-zinc-800 border-zinc-700 max-h-60 overflow-auto"
+                  className="bg-zinc-800 border-zinc-700 max-h-60 overflow-auto w-[var(--radix-select-trigger-width)]"
                 >
                   <div className="p-2">
                     <div className="flex items-center border border-gray-600 rounded px-2 py-1 mb-2">
@@ -165,6 +176,7 @@ export function AddSocialsModal({
                         type="text"
                         placeholder="Search country..."
                         value={searchTerm}
+                        autoFocus
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="bg-transparent outline-none text-white placeholder:text-gray-500 flex-1"
                       />
@@ -174,16 +186,16 @@ export function AddSocialsModal({
                     <SelectItem
                       key={c.name}
                       value={c.name}
-                      className="text-white flex items-center gap-2"
+                      className="text-white hover:bg-zinc-700 hover:outline hover:outline-1 hover:outline-white"
                     >
-                      <Image
-                        src={c.flag}
-                        alt={`${c.name} flag`}
-                        width={20}
-                        height={15}
-                        className="rounded-sm"
-                      />
-                      <span>{c.name}</span>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={`https://flagcdn.com/${c.code.toLowerCase()}.svg`}
+                          alt={`${c.name} flag`}
+                          className="w-5 h-4 object-cover rounded-sm"
+                        />
+                        <span>{c.name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -196,15 +208,28 @@ export function AddSocialsModal({
               value={selectedPlatform}
               onValueChange={setSelectedPlatform}
             >
-              <SelectTrigger className="w-[200px] border-0 bg-zinc-800/50 text-white focus:ring-0">
-                <SelectValue placeholder="Select platform" />
+              <SelectTrigger className="w-[200px] border-0 bg-zinc-800/50 text-white focus:ring-0 [&_svg]:text-white">
+                <SelectValue placeholder="Select Social Handle" />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
-                {platforms.map((platform) => (
+              <SelectContent className="bg-zinc-800 border-zinc-700 transition-none animate-none w-[var(--radix-select-trigger-width)]">
+                <div className="p-2">
+                  <div className="flex items-center border border-gray-600 rounded px-2 py-1 mb-2">
+                    <Search className="mr-2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search platform..."
+                      value={platformSearchTerm}
+                      autoFocus
+                      onChange={(e) => setPlatformSearchTerm(e.target.value)}
+                      className="bg-transparent outline-none text-white placeholder:text-gray-500 flex-1"
+                    />
+                  </div>
+                </div>
+                {filteredPlatforms.map((platform) => (
                   <SelectItem
                     key={platform.value}
                     value={platform.value}
-                    className="text-white"
+                    className="text-white hover:bg-zinc-700 hover:outline hover:outline-1 hover:outline-white"
                   >
                     <div className="flex items-center">
                       {typeof platform.icon === "function"
@@ -222,7 +247,7 @@ export function AddSocialsModal({
             <Textarea
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder={`Enter your ${selectedPlatform} profile link...`}
+              placeholder={selectedPlatform ? `Enter your ${selectedPlatform} profile link...` : "Select a platform first"}
               className="min-h-[100px] bg-transparent border-0 text-white text-lg placeholder:text-zinc-600 focus-visible:ring-0 resize-none p-0"
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -233,7 +258,7 @@ export function AddSocialsModal({
               </span>
               <Button
                 type="submit"
-                disabled={!link}
+                disabled={!link || !selectedPlatform}
                 className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 rounded-lg disabled:opacity-50"
               >
                 Submit
