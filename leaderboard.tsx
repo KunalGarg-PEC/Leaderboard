@@ -11,7 +11,7 @@ import { SocialLinks } from "./components/social-links";
 import { Badge } from "./components/badge";
 import { AddSocialsModal } from "./components/add-social-modal";
 import { PublicKey } from "@solana/web3.js";
-import bs58 from "bs58";
+import { Switch } from "@/components/ui/switch";
 
 type PhantomEvent = "disconnect" | "connect" | "accountChanged";
 interface ConnectOpts {
@@ -44,6 +44,19 @@ export default function Leaderboard() {
   const [nonce, setNonce] = useState<string | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
   const [fingerprint] = useState<string>("test-fingerprint-123");
+  const [isListed, setIsListed] = useState(false);
+
+  const handleToggleListed = (newIsListed: boolean) => {
+    setIsListed(newIsListed);
+    const walletAddress = pubKey?.toBase58();
+    if (walletAddress) {
+      if (newIsListed) {
+        addUserData(walletAddress, userSocials);
+      } else {
+        // removeUserData(walletAddress);
+      }
+    }
+  };
 
   useEffect(() => {
     if ("solana" in window) {
@@ -114,10 +127,11 @@ export default function Leaderboard() {
 
   // Rest of your Leaderboard component JSX remains the same
   return (
-    <div className="min-h-screen bg-[#0A0B0F] text-white p-4 md:p-6">
+    <div className="min-h-screen bg-[#0A0B0F] text-white md:p-6">
+      <div className="w-full h-px bg-gray-800 mb-6" />
       {/* Header Section */}
-      <div className="max-w-6xl mx-auto mb-6 flex items-center justify-between">
-        <div>
+      <div className="mx-auto mb-8 flex items-center justify-between mt-8 ">
+        <div className="mx-9">
           <p className="text-gray-400 text-sm">
             Overview the best & most successful wallets
           </p>
@@ -125,32 +139,41 @@ export default function Leaderboard() {
             Realized <span className="text-emerald-400">PnL</span> Leaderboard
           </h1>
         </div>
-        <Button
-          onClick={
-            isInitialCheckComplete
-              ? isWalletConnected
-                ? () => setShowSocialsModal(true)
-                : handleConnectWallet
-              : undefined
-          }
-          className="bg-[#9D5EF4] hover:bg-[#8B4FE3] text-white"
-          disabled={!isInitialCheckComplete}
-        >
-          {!isInitialCheckComplete
-            ? "Loading..."
-            : isWalletConnected
-            ? userSocials.length > 0
-              ? "Edit Socials"
-              : "Add Socials"
-            : "Connect Wallet"}
-        </Button>
+        <div className="flex gap-3 mx-6 items-center">
+          {!isInitialCheckComplete ? (
+            <Button className="bg-[#9D5EF4] text-white" disabled>
+              Loading...
+            </Button>
+          ) : isWalletConnected ? (
+            <>
+              <Switch
+                checked={isListed}
+                onCheckedChange={handleToggleListed}
+                className="data-[state=checked]:bg-emerald-900 data-[state=unchecked]:bg-[#302f2e]"
+              />
+              <Button
+                onClick={() => setShowSocialsModal(true)}
+                className="bg-[#8B4FE3] hover:bg-[#8B4FE3] text-white"
+              >
+                {userSocials.length > 0 ? "Edit Socials" : "Add Socials"}
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={handleConnectWallet}
+              className="bg-[#9D5EF4] hover:bg-[#8B4FE3] text-white"
+            >
+              Connect Wallet
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ... rest of your JSX ... */}
       <div className="w-full h-px bg-gray-800 mb-6" />
 
       {/* Tabs */}
-      <div className="max-w-6xl mx-auto mb-16">
+      <div className="mx-6 mb-16 ">
         <Tabs defaultValue="daily">
           <TabsList className="bg-transparent border border-gray-800 rounded-lg p-1">
             <TabsTrigger
@@ -293,7 +316,7 @@ export default function Leaderboard() {
       </div>
 
       {/* List View */}
-      <div className="max-w-6xl mx-auto space-y-2">
+      <div className="max-w-6xl mx-auto space-y-2 mb-12">
         {rankedTraders.map((trader, i) => (
           <div
             key={i}
