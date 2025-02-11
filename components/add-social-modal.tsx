@@ -69,7 +69,7 @@ export function AddSocialsModal({ isOpen, onClose, onSubmit, initialSocials }: A
             <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
               <SelectTrigger className="w-[200px] border-0 bg-zinc-800/50 text-white focus:ring-0">
                 <SelectValue placeholder="Select platform" />
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                {/* <ChevronDown className="h-4 w-4 opacity-50" /> */}
               </SelectTrigger>
               <SelectContent className="bg-zinc-800 border-zinc-700">
                 {platforms.map((platform) => (
@@ -83,8 +83,9 @@ export function AddSocialsModal({ isOpen, onClose, onSubmit, initialSocials }: A
               </SelectContent>
             </Select>
             <Button onClick={onClose} variant="ghost" className="p-0 w-8 h-8 rounded-full hover:bg-zinc-800">
-              <X className="h-4 w-4 text-white" />
+            <X className="h-4 w-4 text-white" />
             </Button>
+            
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
