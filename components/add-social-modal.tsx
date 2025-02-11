@@ -93,9 +93,18 @@ export function AddSocialsModal({
     <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-[600px] p-0 bg-black border-0 rounded-3xl">
         <div className="rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 shadow-2xl">
-          <div className="mb-4">
-            <p className="text-sm text-gray-400">Wallet Address</p>
-            <p className="text-white font-mono truncate">{walletAddress}</p>
+          <div className="flex justify-between items-center">
+            <div className="mb-4">
+              <p className="text-sm text-gray-400">Wallet Address</p>
+              <p className="text-white font-mono truncate">{walletAddress}</p>
+            </div>
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              className="p-0 w-8 h-8 rounded-full hover:bg-zinc-800"
+            >
+              <X className="h-4 w-4 text-white" />
+            </Button>
           </div>
           <div className="flex items-center justify-between mb-8">
             <Select
@@ -124,13 +133,6 @@ export function AddSocialsModal({
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              className="p-0 w-8 h-8 rounded-full hover:bg-zinc-800"
-            >
-              <X className="h-4 w-4 text-white" />
-            </Button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
