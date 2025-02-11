@@ -5,7 +5,7 @@ import Leaderboard from "../leaderboard"
 
 export default function SyntheticV0PageForDeployment() {
   return <>
-  {/* <SiteHeader/> */}
+  <SiteHeader/>
   <Leaderboard />
   </>
   
