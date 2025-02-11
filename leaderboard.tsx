@@ -30,7 +30,6 @@ declare global {
     solana?: PhantomProvider;
   }
 }
-``;
 
 export default function Leaderboard() {
   const [isInitialCheckComplete, setIsInitialCheckComplete] = useState(false);
@@ -125,12 +124,11 @@ export default function Leaderboard() {
     addUserData(walletAddress, socials);
   };
 
-  // Rest of your Leaderboard component JSX remains the same
   return (
     <div className="min-h-screen bg-[#0A0B0F] text-white md:p-6">
       <div className="w-full h-px bg-gray-800 mb-6" />
       {/* Header Section */}
-      <div className="mx-auto mb-8 flex items-center justify-between mt-8 ">
+      <div className="mx-auto mb-8 flex items-center justify-between mt-8">
         <div className="mx-9">
           <p className="text-gray-400 text-sm">
             Overview the best & most successful wallets
@@ -146,11 +144,16 @@ export default function Leaderboard() {
             </Button>
           ) : isWalletConnected ? (
             <>
-              <Switch
-                checked={isListed}
-                onCheckedChange={handleToggleListed}
-                className="data-[state=checked]:bg-emerald-900 data-[state=unchecked]:bg-[#302f2e]"
-              />
+              <div className="flex items-center gap-2 border border-gray-700 rounded-md px-3 py-2">
+                <span className="text-gray-400 text-sm">
+                  {isListed ? "Listed" : "Not Listed"}
+                </span>
+                <Switch
+                  checked={isListed}
+                  onCheckedChange={handleToggleListed}
+                  className="data-[state=checked]:bg-emerald-900 data-[state=unchecked]:bg-[#302f2e]"
+                />
+              </div>
               <Button
                 onClick={() => setShowSocialsModal(true)}
                 className="bg-[#8B4FE3] hover:bg-[#8B4FE3] text-white"
@@ -169,11 +172,11 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* ... rest of your JSX ... */}
+      {/* Separator */}
       <div className="w-full h-px bg-gray-800 mb-6" />
 
       {/* Tabs */}
-      <div className="mx-6 mb-16 ">
+      <div className="mx-6 mb-16">
         <Tabs defaultValue="daily">
           <TabsList className="bg-transparent border border-gray-800 rounded-lg p-1">
             <TabsTrigger
@@ -394,7 +397,7 @@ export default function Leaderboard() {
         onClose={() => setShowSocialsModal(false)}
         onSubmit={handleAddSocials}
         initialSocials={userSocials}
-        walletAddress={pubKey?.toBase58() || ""} // Add this line
+        walletAddress={pubKey?.toBase58() || ""}
       />
     </div>
   );

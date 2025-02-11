@@ -10,16 +10,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Twitter, MessageCircle } from "lucide-react";
+import { X, Twitter, MessageCircle, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
+
+interface Country {
+  name: string;
+  flag: string;
+}
 
 interface AddSocialsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (socials: string[]) => void;
+  onSubmit: (socials: string[], nickname: string, country: string) => void;
   initialSocials: string[];
-  walletAddress: string; // Add this line
+  walletAddress: string;
 }
 
 const handleValidation = (platform: string, link: string): boolean => {
@@ -40,8 +46,43 @@ export function AddSocialsModal({
 }: AddSocialsModalProps) {
   const [selectedPlatform, setSelectedPlatform] = useState("twitter");
   const [link, setLink] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [country, setCountry] = useState("");
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [socials, setSocials] = useState<string[]>(initialSocials);
   const [error, setError] = useState("");
+
+  // Fetch countries (with flags) from the Rest Countries API
+  useEffect(() => {
+    async function fetchCountries() {
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all");
+        if (!response.ok) {
+          throw new Error("Failed to fetch countries");
+        }
+        const data = await response.json();
+        const fetchedCountries: Country[] = data
+          .map((country: any) => ({
+            name: country.name.common,
+            flag: country.flags?.png || "",
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+        setCountries(fetchedCountries);
+        if (!country && fetchedCountries.length > 0) {
+          setCountry(fetchedCountries[0].name);
+        }
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    }
+    fetchCountries();
+  }, [country]);
+
+  // Filter countries based on the search term
+  const filteredCountries = countries.filter((c) =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const platforms = [
     { value: "twitter", label: "Twitter", icon: Twitter },
@@ -65,20 +106,9 @@ export function AddSocialsModal({
     e.preventDefault();
     if (handleValidation(selectedPlatform, link)) {
       const newSocials = [...socials, `${selectedPlatform}:${link}`];
-      onSubmit(newSocials);
+      onSubmit(newSocials, nickname, country);
       setSocials(newSocials);
       setLink("");
-      setError("");
-    } else {
-      setError("Invalid URL format for " + selectedPlatform);
-    }
-  };
-
-  const handleAddAnother = () => {
-    if (handleValidation(selectedPlatform, link)) {
-      setSocials([...socials, `${selectedPlatform}:${link}`]);
-      setLink("");
-      setSelectedPlatform("twitter");
       setError("");
     } else {
       setError("Invalid URL format for " + selectedPlatform);
@@ -94,7 +124,7 @@ export function AddSocialsModal({
       <DialogContent className="sm:max-w-[600px] p-0 bg-black border-0 rounded-3xl">
         <div className="rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 shadow-2xl">
           <div className="flex justify-between items-center">
-            <div className="mb-4">
+            <div>
               <p className="text-sm text-gray-400">Wallet Address</p>
               <p className="text-white font-mono truncate">{walletAddress}</p>
             </div>
@@ -106,7 +136,62 @@ export function AddSocialsModal({
               <X className="h-4 w-4 text-white" />
             </Button>
           </div>
-          <div className="flex items-center justify-between mb-8">
+
+          {/* Nickname and Country Inputs in parallel */}
+          <div className="flex gap-4 mt-4">
+            <div className="flex-1">
+              <p className="text-sm text-gray-400">Nickname</p>
+              <Input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Enter your nickname..."
+                className="bg-zinc-800 border-0 text-white placeholder:text-zinc-600 focus-visible:ring-0 p-2 rounded-md"
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-400">Country</p>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="w-full bg-zinc-800 border-0 text-white focus:ring-0">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent
+                  portalled={false}
+                  className="bg-zinc-800 border-zinc-700 max-h-60 overflow-auto"
+                >
+                  <div className="p-2">
+                    <div className="flex items-center border border-gray-600 rounded px-2 py-1 mb-2">
+                      <Search className="mr-2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search country..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-transparent outline-none text-white placeholder:text-gray-500 flex-1"
+                      />
+                    </div>
+                  </div>
+                  {filteredCountries.map((c) => (
+                    <SelectItem
+                      key={c.name}
+                      value={c.name}
+                      className="text-white flex items-center gap-2"
+                    >
+                      <Image
+                        src={c.flag}
+                        alt={`${c.name} flag`}
+                        width={20}
+                        height={15}
+                        className="rounded-sm"
+                      />
+                      <span>{c.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4 mb-8">
             <Select
               value={selectedPlatform}
               onValueChange={setSelectedPlatform}
@@ -122,18 +207,15 @@ export function AddSocialsModal({
                     className="text-white"
                   >
                     <div className="flex items-center">
-                      {typeof platform.icon === "function" ? (
-                        platform.icon()
-                      ) : (
-                        <platform.icon className="mr-2 h-4 w-4" />
-                      )}
+                      {typeof platform.icon === "function"
+                        ? platform.icon()
+                        : <platform.icon className="mr-2 h-4 w-4" />}
                       {platform.label}
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -149,23 +231,13 @@ export function AddSocialsModal({
               <span className="text-zinc-600 text-sm">
                 {socials.length} social(s) added
               </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  onClick={handleAddAnother}
-                  disabled={!link}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 rounded-lg disabled:opacity-50"
-                >
-                  Add Another
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!link}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 rounded-lg disabled:opacity-50"
-                >
-                  Submit
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={!link}
+                className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 rounded-lg disabled:opacity-50"
+              >
+                Submit
+              </Button>
             </div>
           </form>
         </div>
