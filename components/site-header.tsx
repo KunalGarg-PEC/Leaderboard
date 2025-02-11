@@ -59,37 +59,39 @@ export function SiteHeader() {
     >
       <div className="container flex h-16 max-w-screen-2xl items-center px-12 justify-between">
         {/* Logo & Navigation */}
-        <div className="flex items-center space-x-10">
-          <Link
-            href="/"
-            className="text-3xl font-bold text-white tracking-wide hover:text-gray-300 transition"
-            style={{ fontFamily: "Playfair Display, serif" }}
-          >
-            MightX
+        <div className="flex items-center space-x-5">
+          <Link href="/" className="flex items-center space-x-2">
+            <img src="/companylogo.png" alt="MightX Logo" className="h-14 w-14" />
+            <span className="text-4xl font-bold text-white tracking-wide hover:text-gray-300 transition"
+              style={{ fontFamily: "Roboto, sans-serif" }}>
+              MightX
+            </span>
           </Link>
-          <nav className="flex items-center space-x-12 text-base font-semibold tracking-wide text-gray-400"
+          <nav className="flex items-center space-x-6 text-base font-medium tracking-wide text-gray-400"
             style={{ fontFamily: "Poppins, sans-serif" }}>
-            <Link href="/trench" className="transition-colors hover:text-white">Trench</Link>
-            <Link href="/tracker" className="transition-colors hover:text-white">Tracker</Link>
-            <Link href="/clan" className="transition-colors hover:text-white">Clan</Link>
-            <Link href="/leaderboard" className="transition-colors hover:text-white">Leaderboard</Link>
+            {["Trench", "Tracker", "Clan", "Leaderboard"].map((item) => (
+              <Link key={item} href={`/${item.toLowerCase()}`} 
+                className="relative transition-all duration-300 hover:text-white hover:bg-[#1E1E1E] p-2 rounded-lg hover:scale-105">
+                {item}
+              </Link>
+            ))}
           </nav>
         </div>
         
         {/* Search & Connect Button */}
         <div className="flex items-center space-x-4">
-          <div className={`relative flex items-center transition-all duration-300 ${showSearch ? 'w-64' : 'w-32'}`}>
+          <div className={`relative flex items-center transition-all duration-300 ${showSearch ? 'w-96' : 'w-52'}`}>
             <Search className="absolute left-3 text-gray-400" size={20} />
             <input
               ref={searchRef}
               type="text"
               placeholder="Search..."
-              className="pl-10 pr-4 py-2 w-full rounded-lg bg-gray-900 text-white border border-gray-700 focus:outline-none"
+              className="pl-10 pr-4 py-2 w-full rounded-lg bg-[#1E1E1E] text-gray-400 border border-[#2A2A2A] focus:outline-none"
               onFocus={() => setShowSearch(true)}
               onBlur={() => setShowSearch(false)}
             />
           </div>
-          <button className="flex items-center space-x-2 px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-300 transition">
+          <button className="flex items-center space-x-2 px-8 py-2 bg-white text-black rounded-lg hover:bg-gray-300 transition">
             <Send size={16} />
             <span>Connect</span>
           </button>
